@@ -58,18 +58,23 @@ function features(::Type{M}, m::MetaMDP, b::Belief) where M <: Heuristic{H,T} wh
     expansion = map(frontier) do c
         has_observed_parent(m.graph, b, c)
     end
-    (
-        frontier = frontier,
-        expansion = expansion,
+    (;
+        # selection rule features
+        frontier,
         frontier_values = node_values(m, b)[frontier] ./ MAX_VALUE,
         frontier_depths = node_depths(m)[frontier] ./ MAX_DEPTH,
+        expansion,
+
+        # stopping rule features
         term_reward = term_reward(m, b) ./ MAX_VALUE,
         best_next = best_vs_next_value(m, b) ./ MAX_VALUE,
         prob_best = has_component(M, "ProbBest") ? prob_best_maximal(m, b) : 0,
         best_path_dists = has_component(M, "ProbBetter") ? best_paths_value_dists(m, b) : missing,
-        tmp = zeros(T, length(frontier)),  # pre-allocate for use in selection_probability
-        tmp2 = zeros(T, length(frontier)),  # pre-allocate for use in selection_probability
-        tmp3 = zeros(T, length(frontier)),  # pre-allocate for use in selection_probability
+
+        # pre-allocate vectors for use in selection_probability
+        tmp = zeros(T, length(frontier)),
+        tmp2 = zeros(T, length(frontier)),
+        tmp3 = zeros(T, length(frontier)),
     )
 end
 
@@ -88,7 +93,9 @@ end
 
 function select_pref(model::Heuristic{H,T}, φ::NamedTuple)::Vector{T} where {H, T}
     h = φ.tmp  # use pre-allocated array for memory efficiency
-    @. h = model.β_best * φ.frontier_values + model.β_depth * φ.frontier_depths + model.β_expand * φ.expansion
+    @. h = model.β_best * φ.frontier_values +
+           model.β_depth * φ.frontier_depths + 
+           model.β_expand * φ.expansion
     h
 end
 
@@ -270,23 +277,7 @@ function default_space(::Type{Heuristic{H}}) where H
         "ProbBest" => (β_prob_best=β_pos,)
     )
 
-    space = Space(
-        :β_best => 0,
-        :β_depth => 0,
-        :β_expand => 0,
-        :β_satisfice => 0,
-        :β_best_next => 0,
-        :β_prob_best => 0,
-        :β_prob_better => 0,
-        :θ_term => (-Inf, -10, 0, Inf),
-        :θ_prob_better => 0,
-        :β_depthlim => 1e5,  # flag for inactive
-        :θ_depthlim => 1e10,  # Inf breaks gradient
-        :β_prune => 1e5,
-        :θ_prune => -1e10,
-        :ε => (.01, .1, .5, 1.),
-    )
-
+    space = change_space(Heuristic{:Random}, ε=(.01, .1, .5, 1.))
     for component in split(string(H), "_")
         for (k, v) in pairs(ranges[component])
             @assert k in keys(space)
