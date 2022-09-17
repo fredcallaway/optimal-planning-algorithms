@@ -36,8 +36,8 @@ function get_mdp(t::Dict)
 end
 
 @memoize function _load_mdp(mdp_id)
-    m = deserialize("mdps/base/$mdp_id")
-    mutate(m, expand_only=EXPAND_ONLY)
+    (;graph, rewards) = deserialize("mdps/$mdp_id")
+    MetaMDP(;graph, rewards, expand_only=EXPAND_ONLY)
 end
 
 
@@ -58,7 +58,8 @@ function Trial(wid::String, i::Int, t::Dict{String,Any})
         # value is known to be 0 (it is irrelevant to the decision).
         # it actually shouldn't be allowed in the experiment...
         if c != 1
-            b[c] = value
+            b.last_expanded = c
+            b.values[c] = value
         end
     end
     push!(bs, b)

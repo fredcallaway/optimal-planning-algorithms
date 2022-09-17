@@ -16,22 +16,27 @@ const N_FEATURE = 5
 
 Graph = Vector{Vector{Int}}
 Value = Float64
-Belief = Vector{Value}
 
 "Parameters defining a class of problems."
 @with_kw struct MetaMDP
     graph::Graph
     rewards::Vector{Distribution}
-    cost::Float64
+    cost::Float64 = 0.
+    jump_cost::Float64 = 0.
     min_reward::Float64 = -Inf
     expand_only::Bool
 end
 
-import Base: ==
-==(c1::D, c2::D) where D<:DiscreteNonParametric =
-    (support(c1) == support(c2) || size(support(c1)) == size(support(c2)) && 
-        all(support(c1) .== support(c2))) &&
-    (probs(c1) == probs(c2) || all(probs(c1) .== probs(c2)))
+mutable struct Belief
+    values::Vector{Float64}
+    last_expanded::Int
+end
+Base.getindex(b::Belief, i) = getindex(b.values, i)
+Base.length(b::Belief) = length(b.values)
+Base.eachindex(b::Belief) = eachindex(b.values)
+Base.copy(b::Belief) = Belief(copy(b.values), b.last_expanded)
+
+Base.:(==)(b1::Belief, b2::Belief) = b1.values == b2.values && b1.last_expanded == b2.last_expanded
 
 Base.show(io::IO, m::MetaMDP) = print(io, "M")
 id(m::MetaMDP) = string(shash(m); base=62)
@@ -58,8 +63,8 @@ end
 Base.:(==)(x1::MetaMDP, x2::MetaMDP) = struct_equal(x1, x2)
 Base.length(m::MetaMDP) = length(m.graph)
 
-initial_belief(m::MetaMDP) = [0; fill(NaN, length(m)-1)]
-observed(b::Belief) = @. !isnan(b)
+initial_belief(m::MetaMDP) = Belief([0; fill(NaN, length(m)-1)], 1)
+observed(b::Belief) = @. !isnan(b.values)
 observed(b::Belief, c::Int) = !isnan(b[c])
 unobserved(b::Belief) = [c for c in eachindex(b) if isnan(b[c])]
 
@@ -139,6 +144,14 @@ function path_values(m::MetaMDP, b::Belief)
     [path_value(m, b, path) for path in paths(m)]
 end
 
+function cost(m::MetaMDP, b::Belief, c::Int)::Float64
+    if c in m.graph[b.last_expanded]
+        m.cost
+    else
+        m.cost + m.jump_cost
+    end
+end
+
 function term_reward(m::MetaMDP, b::Belief)::Float64
     mapreduce(max, paths(m)) do path
         path_value(m, b, path)
@@ -152,6 +165,7 @@ function has_observed_parent(graph, b, c)
 end
 
 function allowed(m::MetaMDP, b::Belief, c::Int)
+    b.last_expanded == TERM && return false
     c == TERM && return true
     !isnan(b[c]) && return false
     !m.expand_only || has_observed_parent(m.graph, b, c)
@@ -162,28 +176,27 @@ allowed(m::MetaMDP, b::Belief) = [allowed(m, b, c) for c in 0:length(b)]
 function results(m::MetaMDP, b::Belief, c::Int)
     @assert allowed(m, b, c)
     if c == TERM
-        b1 = copy(b)
-        b1[isnan.(b1)] .= Inf  # marks state as terminal
+        b1 = Belief(b.values, c)
         return [(1., b1, term_reward(m, b))]
     end
 
-    res = Tuple{Float64,Belief,Float64}[]
-    for v in support(m.rewards[c])
-        b1 = copy(b)
-        b1[c] = v
+    map(support(m.rewards[c])) do v
+        b1 = Belief(copy(b.values), c)
+        b1.values[c] = v
         p = pdf(m.rewards[c], v)
-        push!(res, (p, b1, -m.cost))
+        (p, b1, -cost(m, b, c))
     end
-    return res
 end
 
 function observe!(m::MetaMDP, b::Belief, c::Int)
     @assert allowed(m, b, c)
+    b.last_expanded = c
     b[c] = rand(m.rewards[c])
 end
 
 function observe!(m::MetaMDP, b::Belief, s::Vector{Float64}, c::Int)
     @assert allowed(m, b, c)
+    b.last_expanded = c
     b[c] = s[c]
 end
 
@@ -293,13 +306,13 @@ function step_V(V::ValueFunction, b::Belief)::Float64
     best = term_reward(V.m, b)
     @fastmath @inbounds for c in 1:length(b)
         !allowed(V.m, b, c) && continue
-        val = 0.
+        val = -cost(V.m, b, c)
         R = V.m.rewards[c]
         for i in eachindex(R.p)
             v = R.support[i]; p = R.p[i]
-            b1 = copy(b)
-            b1[c] = v
-            val += p * (V(b1) - V.m.cost)
+            b1 = Belief(copy(b.values), c)
+            b1.values[c] = v
+            val += p * V(b1)
         end
         if val > best
             best = val
@@ -392,7 +405,7 @@ function rollout(pol::Policy; initial=nothing, max_steps=100, callback=((b, c) -
             reward += term_reward(m, b)
             return (reward=reward, n_steps=step, belief=b)
         else
-            reward -= m.cost
+            reward -= cost(m, b, c)
             observe!(m, b, c)
         end
     end
@@ -415,9 +428,10 @@ function rollout(pol::Policy, s::Vector{Float64}; initial=nothing, max_steps=100
         callback(b, c)
         if c == TERM
             reward += term_reward(m, b)
+            b.last_expanded = TERM
             return (reward=reward, n_steps=step, belief=b)
         else
-            reward -= m.cost
+            reward -= cost(m, b, c)
             observe!(m, b, s, c)
         end
     end
