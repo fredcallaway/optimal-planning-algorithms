@@ -1,4 +1,7 @@
 using Distributed
+@everywhere using Pkg
+@everywhere Pkg.activate(".", io=devnull)
+
 if myid() == 1  # only run on the master process
     if isempty(ARGS)
         if isinteractive()
