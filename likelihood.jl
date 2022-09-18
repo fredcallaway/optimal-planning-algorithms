@@ -95,7 +95,7 @@ function random_restarts(loss, hard_lower, soft_lower, soft_upper, hard_upper, n
     x0s = SobolSeq(soft_lower, soft_upper)
     results = Any[]
     while length(results) < n_restart
-        res = do_opt(next!(x0s))
+        res = do_opt(Sobol.next!(x0s))
         if !ismissing(res)
             push!(results, res)
         end

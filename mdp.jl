@@ -421,7 +421,7 @@ end
 
 function rollout(pol::Policy, s::Vector{Float64}; initial=nothing, max_steps=100, callback=((b, c) -> nothing))
     m = pol.m
-    b = initial != nothing ? initial : initial_belief(m)
+    b = initial !== nothing ? initial : initial_belief(m)
     reward = 0
     for step in 1:max_steps
         c = (step == max_steps) ? TERM : pol(b)

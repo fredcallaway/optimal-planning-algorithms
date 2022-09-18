@@ -1,3 +1,5 @@
+include("conf.jl")
+
 using Distributed
 using StatsBase
 using Glob
@@ -6,7 +8,6 @@ using DataFrames
 using ProgressMeter
 using Random: seed!, randperm, MersenneTwister
 
-include("conf.jl")
 println("Running model comparison for ", ARGS[1])
 
 @everywhere include("base.jl")
@@ -96,8 +97,9 @@ if !(@isdefined(SKIP_FULL) && SKIP_FULL)
         best_model = [p.I[2] for p in argmin(nll; dims=2)]
         n_fit = counts(best_model, 1:length(MODELS))
         println("Model                  Likelihood   Best Fit")
+        @printf "%-40s       %4s         %s\n" "Model" "Likelihood" "Best Fit"
         for i in eachindex(MODELS)
-            @printf "%-22s       %4d         %d\n" name(MODELS[i]) total[i] n_fit[i]
+            @printf "%-40s       %4d         %d\n" name(MODELS[i]) total[i] n_fit[i]
         end
 
         full_fits
@@ -107,7 +109,7 @@ end
 
 # %% ==================== CROSS VALIDATION ====================
 
-if @isdefined(SKIP_GROUP) && SKIP_GROUP
+if @isdefined(SKIP_CV) && SKIP_CV
     println("Skipping cross validation and prediction")
     exit()
 end
