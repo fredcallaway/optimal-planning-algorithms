@@ -21,6 +21,7 @@ mkpath("$base_path/fits/group")
 
 redirect_worker_stderr("workerlog")
 
+
 # %% ==================== LOAD DATA ====================
 
 all_trials = load_trials(EXPERIMENT) |> OrderedDict |> sort!
@@ -35,6 +36,11 @@ all_data = all_trials |> values |> flatten |> get_data;
 # %% ==================== FIT MODELS TO FULL DATASET ====================
 
 MODELS = eval(QUOTE_MODELS)
+
+map(MODELS) do m
+    name(m) => sum(length(spec) > 1 for spec in values(default_space(m)))
+end |> Dict |> JSON.json |> writev("$results_path/param_counts.json")
+
 
 if !(@isdefined(SKIP_GROUP) && SKIP_GROUP)
     @async begin
@@ -105,7 +111,6 @@ if !(@isdefined(SKIP_FULL) && SKIP_FULL)
         full_fits
     end;
 end
-
 
 # %% ==================== CROSS VALIDATION ====================
 
@@ -181,9 +186,10 @@ cv_fits = let
     best_model = [p.I[2] for p in argmin(test_nll; dims=2)];
     n_fit = counts(best_model, 1:length(MODELS))
 
-    println("Model                   Train NLL   Test NLL    Best Fit")
+
+    @printf "%-50s  %4s  %10s  %8s\n" "Model" "Train NLL" "Test NLL" "Best Fit" 
     for i in eachindex(MODELS)
-        @printf "%-22s  %4d  %10d  %8d\n" name(MODELS[i]) total_train[i] total_test[i] n_fit[i]
+        @printf "%-50s  %4d  %10d  %8d\n" name(MODELS[i]) total_train[i] total_test[i] n_fit[i]
     end
     cv_fits
 end;

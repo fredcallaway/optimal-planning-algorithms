@@ -14,7 +14,6 @@ QUOTE_MODELS = quote
         Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_JumpCost},
         Heuristic{:Best_Satisfice_BestNext_DepthLimit},
         Heuristic{:Best_Satisfice_BestNext_DepthLimit_JumpCost},
-        # Heuristic{:Best_Satisfice_BestNext_JumpCost},
     ] 
 end
 
