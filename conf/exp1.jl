@@ -11,9 +11,9 @@ SKIP_GROUP = true
 QUOTE_MODELS = quote 
     [
         Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_JumpCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_DistCost},
         Heuristic{:Best_Satisfice_BestNext_DepthLimit},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_JumpCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_DistCost},
     ] 
 end
 

@@ -7,11 +7,11 @@ MAX_DEPTH = 5.
 QUOTE_MODELS = quote 
     [
         Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_JumpCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_DistCost},
         Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_JumpCost},
+        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_DistCost},
         Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_JumpCost},
+        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_DistCost},
 
         OptimalPlus{:Default},
         MetaGreedy{:Default},

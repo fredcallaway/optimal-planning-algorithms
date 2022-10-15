@@ -47,3 +47,25 @@ function max_node_values(m::MetaMDP, b::Belief)
     nv[1] = maximum(nv)
     nv
 end
+
+"Matrix of shortest path between each node"
+@memoize function tree_distances(m)
+    N = length(m)
+    addresses = [Int[] for i in 1:N]
+    for p in paths(m)
+        for i in eachindex(p)
+            addresses[p[i]] = p[1:i]
+        end
+    end
+
+    D = zeros(Int, N, N)
+    for i in 1:N, j in 1:N
+        ai = addresses[i]
+        aj = addresses[j]
+
+        n_up = length(setdiff(ai, aj))
+        n_down = length(setdiff(aj, ai))
+        D[i, j] = n_up + n_down
+    end
+    D
+end
