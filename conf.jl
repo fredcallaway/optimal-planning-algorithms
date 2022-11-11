@@ -1,5 +1,6 @@
 using Distributed
 @everywhere using Pkg
+Pkg.instantiate()  # install dependencies if necessary
 @everywhere Pkg.activate(".", io=devnull)
 
 if myid() == 1  # only run on the master process

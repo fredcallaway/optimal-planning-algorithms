@@ -71,7 +71,11 @@ if !(@isdefined(SKIP_FULL) && SKIP_FULL)
             file = "$base_path/fits/full/$mname-$wid"
             if isfile(file)
                 #println("$file already exists, skipping.")
-                return deserialize(file)
+                try
+                    return deserialize(file)
+                catch
+                    @warn "Could not deserialize $file. Recomputing"
+                end
             end
             try
                 model, nll = fit(M, trials; method=OPT_METHOD)
@@ -142,9 +146,13 @@ cv_fits = let
         file = "$base_path/fits/cv/$mname-$wid-$fold_i"
         if isfile(file)
             # println("$file already exists, skipping.")
-            result = deserialize(file)
-            @assert result.fold == fold
-            return result
+            try
+                result = deserialize(file)
+                @assert result.fold == fold
+                return result
+            catch
+                @warn "Could not deserialize $file. Recomputing"
+            end
         end
         try
             model, train_nll = fit(M, trials[fold.train]; method=OPT_METHOD)
