@@ -12,7 +12,8 @@ struct Heuristic{H,T} <: AbstractModel{T}
     β_depth::T
     β_expand::T
     β_jump::T
-    β_dist::T
+    β_tree::T
+    β_screen::T
     # Stopping rule weights
     β_satisfice::T
     β_best_next::T
@@ -63,9 +64,17 @@ function features(::Type{M}, m::MetaMDP, b::Belief) where M <: Heuristic{H,T} wh
     is_jump = map(frontier) do c
         !(c in m.graph[b.last_expanded])
     end
-    D = tree_distances(m)
+    TD = tree_distances(m)
     tree_dist = map(frontier) do c
-        D[b.last_expanded, c]
+        TD[b.last_expanded, c]
+    end
+    SD = screen_distances(m)
+    screen_dist = map(frontier) do c
+        if b.last_expanded == 1
+            0. # no distance cost for first click
+        else
+            SD[b.last_expanded, c]
+        end
     end
     (;
         # selection rule features
@@ -75,6 +84,7 @@ function features(::Type{M}, m::MetaMDP, b::Belief) where M <: Heuristic{H,T} wh
         expansion,
         is_jump,
         tree_dist,
+        screen_dist,
 
         # stopping rule features
         term_reward = term_reward(m, b) ./ MAX_VALUE,
@@ -108,7 +118,8 @@ function select_pref(model::Heuristic{H,T}, φ::NamedTuple)::Vector{T} where {H,
            model.β_depth * φ.frontier_depths + 
            model.β_expand * φ.expansion +
            model.β_jump * φ.is_jump +
-           model.β_dist * φ.tree_dist
+           model.β_tree * φ.tree_dist +
+           model.β_screen * φ.screen_dist
     h
 end
 
@@ -256,7 +267,8 @@ default_space(::Type{Heuristic{:Random}}) = Space(
     :β_depth => 0,
     :β_expand => 0,
     :β_jump => 0,
-    :β_dist => 0,
+    :β_tree => 0,
+    :β_screen => 0,
     :β_satisfice => 0,
     :β_best_next => 0,
     :β_prob_best => 0,
@@ -290,7 +302,8 @@ function default_space(::Type{Heuristic{H}}) where H
         "ProbBetter" => (β_prob_better=β_pos, θ_prob_better),
         "ProbBest" => (β_prob_best=β_pos,),
         "JumpCost" => (β_jump=β_neg,),
-        "DistCost" => (β_dist=β_neg,),
+        "TreeCost" => (β_tree=β_neg,),
+        "ScreenCost" => (β_screen=β_neg,),
     )
 
     space = change_space(Heuristic{:Random}, ε=(.01, .1, .5, 1.))

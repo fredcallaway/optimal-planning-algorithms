@@ -1,4 +1,6 @@
 
+
+
 "The maximum expected value of any path going through this node."
 function node_values(m::MetaMDP, b::Belief)
     nv = fill(-Inf, length(m))
@@ -66,6 +68,27 @@ end
         n_up = length(setdiff(ai, aj))
         n_down = length(setdiff(aj, ai))
         D[i, j] = n_up + n_down
+    end
+    D
+end
+
+
+@memoize function get_layout(experiment=EXPERIMENT)
+    layout = Dict(
+        "exp1" => "412",
+        "exp2" => "41111"
+    )[experiment]
+    JSON.parsefile("../data/layouts/$layout.json")["layout"] |> sort |> values .|> Vector{Int}
+end
+
+euclidean_distance(x, y) = √sum((x .- y) .^2)
+
+function screen_distances()
+    layout = get_layout()
+    N = length(layout)
+    D = zeros(Float64, N, N)
+    for i in 1:N, j in 1:N
+        D[i, j] = euclidean_distance(layout[i], layout[j])
     end
     D
 end

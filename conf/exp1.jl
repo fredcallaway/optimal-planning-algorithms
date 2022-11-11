@@ -10,10 +10,12 @@ SKIP_GROUP = true
 # this quote thing allows us to refer to types that aren't defined yet
 QUOTE_MODELS = quote 
     [
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_DistCost},
+        # Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune},
+        # Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_DistCost},
         Heuristic{:Best_Satisfice_BestNext_DepthLimit},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_DistCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_TreeCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_ScreenCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_TreeCost_ScreenCost},
     ] 
 end
 

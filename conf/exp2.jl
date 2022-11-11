@@ -7,15 +7,21 @@ MAX_DEPTH = 5.
 QUOTE_MODELS = quote 
     [
         Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_DistCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_TreeCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_ScreenCost},
+        Heuristic{:Best_Satisfice_BestNext_DepthLimit_Prune_TreeCost_ScreenCost},
         Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_DistCost},
+        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_TreeCost},
+        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_ScreenCost},
+        Heuristic{:Depth_Satisfice_BestNext_DepthLimit_Prune_TreeCost_ScreenCost},
         Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune},
-        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_DistCost},
+        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_TreeCost},
+        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_ScreenCost},
+        Heuristic{:Breadth_Satisfice_BestNext_DepthLimit_Prune_TreeCost_ScreenCost},
 
-        OptimalPlus{:Default},
-        MetaGreedy{:Default},
-        Heuristic{:Random},
+        # OptimalPlus{:Default},
+        # MetaGreedy{:Default},
+        # Heuristic{:Random},
         # Heuristic{:Best_Satisfice_BestNext_DepthLimit},
         # Heuristic{:Best_Satisfice_BestNext_DepthLimit_JumpCost},
     ] 
