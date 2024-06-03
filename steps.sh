@@ -1,4 +1,4 @@
-exp=exp2
+exp="$1"
 
 julia -p auto solve.jl all
 # alternatively, solve on a cluster:
