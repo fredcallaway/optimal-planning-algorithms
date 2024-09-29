@@ -18,7 +18,7 @@ Create or edit a file like conf/exp1.jl to specify things like which models to f
 
 ## Solve meta MDPs
 
-This line solves the meta MDPs in mdps/base. If you aren't using my task structure, then you will need to write your own MDPs. See `define_trials.jl` for an example (search for mdps/base).
+This line solves the meta MDPs in mdps/base. If you aren't using my task structure, then you will need to write your own MDPs. See `define_trials.jl` for an example (search for mdps/base). This is 
 ```
 julia -p auto solve.jl all
 ```
@@ -35,8 +35,10 @@ sbatch solve.sbatch
 This step precomputes Q values for the clicks people made in the experiment. It's pretty fast as long as the value function is not really big (as it is in Experiment 3).
 
 ```
-julia -p 8 Q_table.jl $exp
+julia -p 8 Q_table.jl exp1
 ```
+
+Note that `exp1` specifies a file in conf/ (here, conf/exp1.jl).
 
 If you have a very large MDP or run out of memory, then you might have better luck with 
 ```
@@ -47,10 +49,10 @@ You can adjust the number of processes to use as much RAM as you have available 
 
 ## Fiting
 
-This fits the models and 
+This fits all the models specified in conf/exp1.jl (you can switch out exp1 for any other configuration file). Results are saved in the `results_path` directory specified in the config file.
 
 ```
-julia -p auto model_comparison.jl $exp
+julia -p auto model_comparison.jl exp1.jl
 ```
 
 
@@ -59,7 +61,7 @@ julia -p auto model_comparison.jl $exp
 These lines simulate the fitted models to generate data to compare with humans and then compute some features on it for downstream analysis.
 
 ```
-julia -p auto simulate.jl $exp
-julia analysis.jl $exp
-julia best_first_rate.jl $exp  # only needed for exp1
+julia -p auto simulate.jl exp1
+julia analysis.jl exp1
+julia best_first_rate.jl exp1  # only needed for exp1
 ```
