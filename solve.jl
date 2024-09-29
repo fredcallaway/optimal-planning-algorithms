@@ -29,7 +29,7 @@ end
 
 function write_mdps(ids)
     base_mdps = map(ids) do i
-        deserialize("mdps/base/$i")c
+        deserialize("mdps/base/$i")
     end
     all_mdps = [mutate(m, cost=c) for m in base_mdps, c in COSTS]
     
