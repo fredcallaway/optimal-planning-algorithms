@@ -1,9 +1,12 @@
 
 using JSON
+include("utils.jl")
 include("mdp.jl")
 mkpath("mdps/base")
 
-base = "/Users/fred/heroku/webofcash2/static/json"
+json_dir = "trial_json"
+mkpath("$json_dir/structure")
+mkpath("$json_dir/rewards")
 
 DIRECTIONS = ["up", "right", "down", "left"]
 OFFSETS = [(0, -1), (1,0), (0, 1), (-1, 0)]
@@ -50,7 +53,7 @@ function spirals(n, turns)
     (layout=layout, initial="0", graph=graph)
 end
 
-write("$base/structure/41111.json", json(spirals(4, [0, 1, -1, 1, 1])))
+write("$json_dir/structure/41111.json", json(spirals(4, [0, 1, -1, 1, 1])))
 
 # ---------- REWARDS ---------- #
 
@@ -108,7 +111,7 @@ function write_trials(name::String, m::MetaMDP)
         tid = id(m) * "-" * string(shash(rewards); base=62)
         (trial_id=tid, stateRewards=rewards)
     end
-    f = "$base/rewards/$name.json"
+    f = "$json_dir/rewards/$name.json"
     write(f, json(trials))
     println("Wrote ", f)
 end
@@ -124,8 +127,6 @@ if basename(PROGRAM_FILE) == basename(@__FILE__)
     write_trials("exp3_constant", make_mdp_exp3(1))
     write_trials("exp3_increasing", make_mdp_exp3(3))
     write_trials("exp3_decreasing", make_mdp_exp3(1/3))
-    # m = MetaMDP(tree([4,1,2]), DNP([-10, -5, 5, 10]), 0., -Inf, true)
-    # m1 = make_mdp([4,1,2], :constant, NaN, NaN, NaN)
 end
 
 
